@@ -10,8 +10,8 @@ namespace AK.CompetitiveMan
 
         public float
             AimDistance = 25,
-            XSens = 120,
-            YSens = 120,
+            XSens = 1,
+            YSens = 1,
             ApplyAnimSpeed = 6,
             AnimThreshold = 1,
             FallDelay = .25f,

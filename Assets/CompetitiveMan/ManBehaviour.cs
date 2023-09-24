@@ -7,7 +7,7 @@ namespace AK.CompetitiveMan
     [RequireComponent(typeof(CapsuleCollider))]
     public class ManBehaviour : MonoBehaviour
     {
-        private readonly int 
+        private readonly int
             _forwardHash = Animator.StringToHash("Forward"),
             _rightHash = Animator.StringToHash("Right"),
             _groundedHash = Animator.StringToHash("Grounded"),
@@ -27,8 +27,7 @@ namespace AK.CompetitiveMan
         private Quaternion _rotation;
         private float _fallTimer, _speed;
         private bool _grounded;
-        private IMove _move;
-
+        private MoveController _moveController;
         private InputAction _lookAction, _moveAction, _jumpAction;
 
         public virtual void Start()
@@ -37,8 +36,7 @@ namespace AK.CompetitiveMan
             _camTransform = Camera.main!.transform;
             _position = _lastPosition = _transform.position;
             _rotation = _transform.rotation;
-
-            _move = new Move(_moveConfig, _capsuleCollider, _position);
+            _moveController = new MoveController(_moveConfig, _capsuleCollider, _position);
 
             _lookAction = _input.actions["Look"];
             _moveAction = _input.actions["Move"];
@@ -50,14 +48,17 @@ namespace AK.CompetitiveMan
 
         public virtual void Update()
         {
-            GetActions();
+            var look = _lookAction.ReadValue<Vector2>();
+            _lookRotation += new Vector2(-look.y * _manConfig.YSens, look.x * _manConfig.XSens);
+            _lookRotation.x = _lookRotation.x.Clamp(_manConfig.MinVerticalAngle, _manConfig.MaxVerticalAngle);
 
-            _move.Update();
-            _position = _move.Position;
-            _velocity = _move.Velocity;
+            _moveController.Update(_moveAction.ReadValue<Vector2>(), _rotation, _jumpAction.IsPressed());
+
+            _position = _moveController.Position;
+            _velocity = _moveController.Velocity;
+            _grounded = _moveController.Grounded;
+
             _speed = new Vector3(_velocity.x, 0, _velocity.z).magnitude;
-            _grounded = _move.Grounded;
-
             _transform.rotation = Quaternion.AngleAxis(_lookRotation.y, Vector3.up);
             _rotation = _transform.rotation * Quaternion.AngleAxis(_lookRotation.x, Vector3.right);
 
@@ -69,25 +70,11 @@ namespace AK.CompetitiveMan
                 _rotation * Vector3.forward);
 
             _pointTransform.position = lookRay.GetPoint(_manConfig.AimDistance);
-
             _camTransform.position = lookRay.GetPoint(_manConfig.CameraOffset.z)
-                + _rotation * new Vector3(_manConfig.CameraOffset.x, 0, 0);
+                                     + _rotation * new Vector3(_manConfig.CameraOffset.x, 0, 0);
 
             _camTransform.rotation = _rotation;
-
             _transform.position = _position;
-        }
-
-        private void GetActions()
-        {
-            var look = _lookAction.ReadValue<Vector2>() * Time.deltaTime;
-            var rotation = _lookRotation + new Vector2(-look.y * _manConfig.YSens, look.x * _manConfig.XSens);
-            rotation.x = ClampAngle(rotation.x, _manConfig.MinVerticalAngle, _manConfig.MaxVerticalAngle);
-            _lookRotation = rotation;
-
-            _move.MoveDelta = _moveAction.ReadValue<Vector2>();
-            _move.CameraRotation = _rotation;
-            _move.JumpPressed = _jumpAction.IsPressed();
         }
 
         private void Animate()
@@ -117,7 +104,8 @@ namespace AK.CompetitiveMan
                 _fallTimer += Time.deltaTime;
                 if (_fallTimer >= _manConfig.FallDelay)
                     grounded = false;
-            } else
+            }
+            else
             {
                 _fallTimer = 0;
             }
@@ -143,17 +131,5 @@ namespace AK.CompetitiveMan
         }
 
         #endregion
-
-        private static float ClampAngle(float angle, float min, float max)
-        {
-            angle %= 360;
-            if (angle >= -360 && angle <= 360)
-            {
-                if (angle < -360) angle += 360;
-                if (angle > 360) angle -= 360;
-            }
-
-            return Mathf.Clamp(angle, min, max);
-        }
     }
 }

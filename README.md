@@ -5,7 +5,7 @@ Example of using the [Competitive Controller](https://github.com/aleksandrpp/Com
 
 ![Runner](Assets/CompetitiveMan/Media/SceneRunner.gif)
 
-`v1.0.0`
+`v1.1.0`
 <br>
 
 https://github.com/aleksandrpp/CompetitiveMan
