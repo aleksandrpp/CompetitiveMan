@@ -1,7 +1,7 @@
 # Competitive Controller
 A good starting point for creating your own competitive character controller in Unity is needed primarily for online games, where you cannot rely on the rigidbody, and the PhysX character controller hides too much logic.
 
-You can see example [heare](https://github.com/aleksandrpp/CompetitiveMan)
+You can see example [here](https://github.com/aleksandrpp/CompetitiveMan)
 
 ```mermaid
 ---
@@ -19,7 +19,7 @@ flowchart LR
     G --> H[Add Gravity]
 ```
 
-`v1.0.0`
+`v1.1.0`
 <br>
 
 https://github.com/aleksandrpp/CompetitiveController
